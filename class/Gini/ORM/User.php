@@ -45,5 +45,30 @@ class User extends Object
 
         return parent::save();
     }
+
+    public function activation()
+    {
+        if ($this->atime == '0000-00-00 00:00:00' || !$this->atime) {
+            $this->atime = date('Y-m-d H:i:s');
+            return $this->save();
+        } else {
+            return false;
+        }
+    }
+
+    public function createActivationKey()
+    {
+        $key = substr(md5($this->email.time()), 5, 20);
+        $expiration = date('Y-m-d H:i:s', strtotime("+2 days", time()));
+        $activation = a('activation');
+        $activation->user_id = $this->id;
+        $activation->key = $key;
+        $activation->expiration = $expiration;
+        if ($activation->save()) {
+            return $key;
+        }
+
+        return false;
+    }
     
 }
