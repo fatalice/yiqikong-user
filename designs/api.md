@@ -4,6 +4,7 @@
 
 namespace `YiQiKong/User`
 
+
 ### 注册新用户
 
 #### 调用函数
@@ -36,6 +37,7 @@ namespace `YiQiKong/User`
     $key (返回激活链接中的key)     string        表示用户注册成功
 
 ```
+
 
 ### 更新用户信息
 
@@ -72,6 +74,7 @@ namespace `YiQiKong/User`
 
 ```
 
+
 ### 新注册用户激活
 
 #### 调用函数
@@ -88,10 +91,16 @@ namespace `YiQiKong/User`
 #### 返回结果
 
 ```
-    '1'    string    表示激活成功
-    '2'    string    激活链接超时需要重新发送激活链接
-    '3'    string    账户已经被激活, 无需再次激活
+    如果链接超时或者账户已经激活 则会抛出 exception, exception 错误码、错误信息如下
+    {
+        1002: "激活链接超时",
+        1003: "账户已经激活",
+    }
+
+    true     bool        账户激活成功
+    false    bool        账户激活失败
 ```
+
 
 ### 重新生成激活链接中的key值
 
@@ -114,45 +123,61 @@ namespace `YiQiKong/User`
 ```
 
 
-
-
-
-
-
-
-
-
-
-
-### 用户登录
+### 用户登陆验证
 
 #### 调用函数
 
-``
+`YiQiKong/User/Verify(string username, string password)`
 
 #### 参数列表
 
 ```
-	
+    username    string    账户(邮箱),
+    password    string    密码,
+
 ```
 
 #### 返回结果
 
 ```
-	
+    true     bool    验证成功
+    false    bool    验证失败
 ```
+
 
 ### 获取用户信息
 
 #### 调用函数
 
-```
+`YiQiKong/User/GetInfo($id)`
 
+#### 参数列表
+```
+    $id 为整型,  则为 gapper_id,
+    $id 为字符串, 则为 email 或者为 wechat_openid
 ```
 
 #### 返回结果
-
 ```
+    // 用户不存在
+    false    bool    获取用户失败
 
+    // 用户存在
+    return [
+            'id' => $user->id,
+            'name' => $user->name,
+            'gender' => $user->gender,
+            'email' => $user->email,
+            'phone' => $user->phone,
+            'identity' => $user->identity,
+            'residence' => $user->residence,
+            'institution' => $user->institution,
+            'icon' => $user->icon,
+            'gapper_id' => $user->gapper_id,
+            'atime' => $user->atime,
+            'wechat_bind_status' => $user->wechat_bind_status,
+            'wechat_openid' => $user->wechat_openid,
+            'lab_id' => $user->lab_id,
+            'id_admin' => $user->is_admin,
+        ];
 ```
-
