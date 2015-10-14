@@ -47,7 +47,7 @@ class RUser extends Gapper\User
         return self::$_RPC;
     }
 
-    public function loginViaGapper($username, $password)
+    public static function loginViaGapper($username, $password)
     {
         try {
             return $this->getRPC()->gapper->user->verify($username, $password);    
