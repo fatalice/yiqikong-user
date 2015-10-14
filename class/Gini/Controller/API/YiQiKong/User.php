@@ -4,6 +4,12 @@ namespace Gini\Controller\API\YiQiKong;
 
 class User extends \Gini\Controller\API
 {
+    /**
+     * @throws exception   1001: 异常参数传入
+     * @throws exception   1002: 激活连接超时
+     * @throws exception   1003: 账户已经被激活
+     **/
+
     private function _getUser($id)
     {
         if (!$id) {
@@ -155,9 +161,6 @@ class User extends \Gini\Controller\API
             if ($user->save()) {
                 return true
             }
-
-        } else {
-            throw \Gini\IoC::construct('\Gini\API\Exception', '异常参数传入', 1001);
         }
 
         return false;
