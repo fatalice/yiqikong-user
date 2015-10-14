@@ -169,4 +169,22 @@ class User extends \Gini\Controller\API
         return \Gini\ORM\RUser::loginViaGapper($username, $password);
     }
 
+    public function actionAuthorize($email, $password) {
+        if (\Gini\ORM\RUser::loginViaGapper($username, $password)) {
+            $user = a('user')->whose('email')->is($email);
+            if ($user->id) {
+                if ($user->wechat_openid) {
+                    return 'wechat';
+                } else {
+                    return 'yiqikong';
+                }       
+            } else {
+                return 'gapper';
+            }
+        } else {
+            throw \Gini\IoC::construct('\Gini\API\Exception', '用户不存在', 1004);
+        }
+        
+    }
+
 }
