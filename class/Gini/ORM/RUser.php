@@ -25,7 +25,7 @@ class RUser extends Gapper\User
     public function getInfo($id)
     {
         try {
-            return $this->getRPC()->gapper->user->getInfo($id);
+            return self::getRPC()->gapper->user->getInfo($id);
         } catch (\Gini\RPC\Exception $e) {
             return false;
         } 
