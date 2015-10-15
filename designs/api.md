@@ -34,7 +34,10 @@ namespace `YiQiKong/User`
         1001: "异常参数传入",
     }
 
-    $key (返回激活链接中的key)     string        表示用户注册成功
+    $key (对于web新注册的用户, 也就是非gapper用户返回激活链接中的key)     string        表示用户注册成功
+    true (对于已经是gapper用户, 注册成功返回true)    bool    表示注册成功
+    false    bool    注册失败
+    null    null    对于已经刷入 yiqikong-user 的用户避免重复注册
 
 ```
 

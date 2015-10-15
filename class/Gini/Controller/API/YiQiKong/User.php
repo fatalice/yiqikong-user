@@ -100,6 +100,12 @@ class User extends \Gini\Controller\API
             $gapperId = $guser['id'];
         }
 
+        // 对于已经刷入 yiqikong-user 的用户避免重复注册
+        $luser = a('user')->whose('gapper_id')->is($gapperId);
+        if ($luser) {
+            return;
+        }
+
         // 在 yiqikong_user 存储用户的具体信息
         if ($gapperId) {
         	$user = a('user');
@@ -109,12 +115,26 @@ class User extends \Gini\Controller\API
             $user->identity = $params['identity'];
             $user->institution = $params['institution'];
             $user->gapper_id = $gapperId;
-            if ($user->save()) {
-
-                //生成激活链接中的key存入activation表并返回
-                $key = $user->createActivationKey();
-                if ($key) {
-                    return $key;
+            $user->gender = $params['gender'];
+            $user->residence = $params['residence'];
+            $user->initials = $params['initials'];
+            $user->icon = $params['icon'];
+            $user->ctime = $params['ctime'];
+            $user->atime = $params['atime'];
+            $user->wechat_bind_status = $params['wechat_bind_status'];
+            $user->wechat_openid = $params['wechat_openid'];
+            $user->lab_id = $params['lab_id'];
+            $user->is_admin = $params['is_admin'];
+            $result = $user->save();
+            if ($result) {
+                // 对于web新注册的用户生成激活链接中的key存入activation表并返回
+                if (!$guser) {
+                    $key = $user->createActivationKey();
+                    if ($key) {
+                        return $key;
+                    }
+                } else {
+                    return true;
                 }
             }
         }
