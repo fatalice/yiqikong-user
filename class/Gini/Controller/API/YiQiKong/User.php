@@ -175,15 +175,16 @@ class User extends \Gini\Controller\API
 
     public function actionAuthorize($email, $password) {
         if (\Gini\ORM\RUser::loginViaGapper($username, $password)) {
+            $gapper = \Gini\ORM\RUser::getInfo($email);
             $user = a('user')->whose('email')->is($email);
             if ($user->id) {
                 if ($user->wechat_openid) {
-                    return 'wechat';
+                    return 'wechat|'.$user->wechat_openid;
                 } else {
-                    return 'yiqikong';
+                    return 'yiqikong|'.$user->id;
                 }       
             } else {
-                return 'gapper';
+                return 'gapper|'.$gapper['id'];
             }
         } else {
             throw \Gini\IoC::construct('\Gini\API\Exception', '用户不存在', 1004);
