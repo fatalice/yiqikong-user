@@ -55,4 +55,24 @@ class RUser extends Gapper\User
             return false;
         }
     }
+
+    public static function getIdentity($id)
+    {
+        try {
+            return $this->getRPC()->gapper->user->getIdentity((int) $id, 'wechat');
+        } catch (\Gini\RPC\Exception $e) {
+
+        }
+    }
+
+    public static function linkIdentity($id, 'wechat', $openId)
+    {
+        try {
+            return $this->getRPC()->gapper->user->linkIdentity((int) $id, 'wechat', $openId);
+        } catch (\Gini\RPC\Exception $e) {
+
+        }
+
+    }
+
 }

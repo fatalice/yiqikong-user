@@ -70,5 +70,20 @@ class User extends Object
 
         return false;
     }
+
+    public function wechat_bind($openId) {
+        $this->wechat_bind_status = self::BIND_STATUS_SUCCESS;
+        $this->wechat_openid = $openId;
+
+        return $this->save();
+
+    }
+
+    public function wechat_unbind() {
+        $this->wechat_bind_status = self::BIND_STATUS_NOT_YET;
+        $this->wechat_openid = NULL;
+
+        return $this->save();
+    }
     
 }
