@@ -205,7 +205,7 @@ class User extends \Gini\Controller\API
                 return 'gapper|'.$gapper['id'];
             }
         } else {
-            throw \Gini\IoC::construct('\Gini\API\Exception', '用户不存在', 1004);
+            return false;
         }
         
     }
