@@ -181,3 +181,26 @@ namespace `YiQiKong/User`
             'id_admin' => $user->is_admin,
         ];
 ```
+
+### 绑定微信
+
+#### 调用函数
+
+`YiQiKong/User/LinkWechat($id, $openId)`
+
+#### 参数列表
+```
+    $id 整型或者字符串, 若为整型则为gapper_id, 为字符串则为email
+    $openId 字符串, wechat_openid
+```
+
+#### 返回结果
+```
+    如果根据$id获取用户失败, 则会抛出 exception, exception 错误码、错误信息如下
+    {
+        1004: "获取用户失败",
+    }
+
+    false    bool    绑定失败
+    true     bool    绑定成功
+```
