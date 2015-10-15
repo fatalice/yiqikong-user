@@ -22,7 +22,7 @@ class RUser extends Gapper\User
         }
     }
 
-    public function getInfo($id)
+    public static function getInfo($id)
     {
         try {
             return self::getRPC()->gapper->user->getInfo($id);
