@@ -67,23 +67,41 @@ class User extends \Gini\Controller\API
     // 注册
 	public function actionSignup($params)
 	{
-
-		//参数验证
-        $check_keys = ['name', 'email', 'institution', 'phone', 'password'];
-
-        if (count(array_diff($check_keys, array_keys($params)))) {
+        if (!$params['email']) {
             throw \Gini\IoC::construct('\Gini\API\Exception', '异常参数传入', 1001);
         }
 
-        // 首先调用gapper rpc 来将用户注册为gapper用户
-        $gapperUser = a('ruser');
-        $gapperUser->name = $params['name'];
-        $gapperUser->username = $gapperUser->email = $params['email'];
-        $gapperUser->password = $params['password'];
-        $gapperId = $gapperUser->save();
-        if ($gapperId) {
+        $guser = \Gini\ORM\RUser::getInfo($email);
 
-            // 在 yiqikong_user 存储一些用户的具体信息
+        // 参数验证
+        $check_keys = ['name', 'institution', 'phone'];
+
+        // 如果不是gapper用户而是新用户注册需要验证密码
+        if (!$guser) {
+            array_push($check_keys, 'password');
+
+            if (count(array_diff($check_keys, array_keys($params)))) {
+                throw \Gini\IoC::construct('\Gini\API\Exception', '异常参数传入', 1001);
+            }
+
+            // 调用gapper rpc 来将用户注册为gapper用户
+            $gapperUser = a('ruser');
+            $gapperUser->name = $params['name'];
+            $gapperUser->username = $gapperUser->email = $params['email'];
+            $gapperUser->password = $params['password'];
+            $gapperId = $gapperUser->save();
+        } else {
+            // 用户已经是gapper用户
+
+            if (count(array_diff($check_keys, array_keys($params)))) {
+                throw \Gini\IoC::construct('\Gini\API\Exception', '异常参数传入', 1001);
+            }
+
+            $gapperId = $guser['id'];
+        }
+
+        // 在 yiqikong_user 存储用户的具体信息
+        if ($gapperId) {
         	$user = a('user');
         	$user->name = $params['name'];
             $user->email = $params['email'];
