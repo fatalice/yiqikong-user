@@ -210,17 +210,6 @@ class User extends \Gini\Controller\API
                     if (!$identity) {
                         $flag = \Gini\ORM\RUser::linkIdentity($user->gapper_id, 'wechat', $openId);
 
-                        // 这一部分考虑是否放在wechat进行处理，而不再调用rpc
-                        /*
-                        if ($flag) {
-                            $LUser = a('LUser')->whose('gapper_id')->is($this->id);
-                            $LUser->gapper_id = $this->id;
-                            $lab = $LUser->lab_id;
-                            $lab[] = $labId;
-                            $LUser->lab_id = $lab;
-                            $LUser->save();
-                        } */
-
                         if ($flag && $user->wechat_bind($openid)) {
 
                             $params = [
@@ -236,28 +225,7 @@ class User extends \Gini\Controller\API
                                     'params' => $params,
                                 ], 'Lims-CF');
                         }
-                    }
-
-
-                        /*if ($labId == 'yiqikong') {
-                            $conf = \Gini\Config::get('yiqikong.rpc')['web'];
-                            $rpc = \Gini\IoC::construct('\Gini\RPC', $conf['url']);
-                            $rpc->YiQiKong->User->Bind((int) $this->id, $openId);
-                        } else {
-                            $params = [
-                                'user' => (int) $this->id,
-                                'openid' => $openId,
-                                'labId' => $labId
-                            ];
-                            //发送给所有的 Lims-CF 服务器, 要求进行绑定
-                            \Gini\Debade\Queue::of('Lims-CF')->push(
-                                [
-                                    'method' => 'wechat/bind',
-                                    'params' => $params,
-                                ], 'Lims-CF');
-                        }
-                    }*/
-                    else if ($identity == $openId) {
+                    } else if ($identity == $openId) {
                         if ($user->wechat_bind($openid)) {
                             $flag = true;
                         }
