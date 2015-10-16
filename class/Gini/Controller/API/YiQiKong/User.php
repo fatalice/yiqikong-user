@@ -230,7 +230,7 @@ class User extends \Gini\Controller\API
         
     }
 
-    # 用户进行绑定微信 或者 更新了微信账重新绑定自已原有的账户时调用
+    // 用户进行绑定微信 或者 更新了微信账重新绑定自已原有的账户时调用
     public function actionLinkWechat($id, $openId)
     {
         // 根据 $id 获取用户
