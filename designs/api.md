@@ -46,7 +46,7 @@ namespace `YiQiKong/User`
 
 #### 调用函数
 
-`YiQiKong/User/UpdateUser(object data)`
+`YiQiKong/User/UpdateInfo(object data)`
 
 #### 参数列表
 
@@ -152,7 +152,7 @@ namespace `YiQiKong/User`
 
 #### 调用函数
 
-`YiQiKong/User/GetUser($id)`
+`YiQiKong/User/GetInfo($id)`
 
 #### 参数列表
 ```

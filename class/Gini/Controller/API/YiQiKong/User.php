@@ -54,7 +54,7 @@ class User extends \Gini\Controller\API
     }
 
     // 获取用户信息
-    public function actionGetUser($id)
+    public function actionGetInfo($id)
     {
         $user = $this->_getUser($id);
         if ($user->id) {
@@ -180,7 +180,7 @@ class User extends \Gini\Controller\API
     }
 
     // 用户更新信息
-    public function actionUpdateUser($params)
+    public function actionUpdateInfo($params)
     {
 
         $user = a('user')->whose('email')->is($params['email']);
