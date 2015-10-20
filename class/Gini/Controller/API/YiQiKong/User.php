@@ -9,6 +9,7 @@ class User extends \Gini\Controller\API
      * @throws exception   1002: 激活连接超时
      * @throws exception   1003: 账户已经被激活
      * @throws exception   1004: 用户不存在
+     * @throws exception   1005: 用户为gapper用户, 但是不是yiqikong-user的用户
      **/
 
     private function _getUser($id)
@@ -32,115 +33,100 @@ class User extends \Gini\Controller\API
 
     }
 
-    private function _getUserData($user)
-    {
-        return [
-            'id' => $user->id,
-            'name' => $user->name,
-            'gender' => $user->gender,
-            'email' => $user->email,
-            'phone' => $user->phone,
-            'identity' => $user->identity,
-            'residence' => $user->residence,
-            'institution' => $user->institution,
-            'icon' => $user->icon,
-            'gapper_id' => $user->gapper_id,
-            'atime' => $user->atime,
-            'wechat_bind_status' => $user->wechat_bind_status,
-            'wechat_openid' => $user->wechat_openid,
-            'lab_id' => $user->lab_id,
-            'id_admin' => $user->is_admin,
-        ];
-    }
-
     // 获取用户信息
     public function actionGetInfo($id)
     {
         $user = $this->_getUser($id);
         if ($user->id) {
-            return $this->_getUserData($user);
+            return [
+                'id' => $user->id,
+                'name' => $user->name,
+                'gender' => $user->gender,
+                'email' => $user->email,
+                'phone' => $user->phone,
+                'identity' => $user->identity,
+                'residence' => $user->residence,
+                'institution' => $user->institution,
+                'icon' => $user->icon,
+                'gapper_id' => $user->gapper_id,
+                'atime' => $user->atime,
+                'wechat_bind_status' => $user->wechat_bind_status,
+                'wechat_openid' => $user->wechat_openid,
+                'lab_id' => $user->lab_id,
+                'id_admin' => $user->is_admin,
+            ];
         }
-
         return false;
     }
 
-    // 注册
-	public function actionSignup($params)
+    // 新用户注册调用 (不是gapper用户)
+	public function actionCreate($params)
 	{
-        if (!$params['email']) {
+        $check_keys = ['name', 'email', 'password', 'institution', 'phone'];
+
+        // 参数验证
+        if (count(array_diff($check_keys, array_keys($params)))) {
             throw \Gini\IoC::construct('\Gini\API\Exception', '异常参数传入', 1001);
         }
 
-        $guser = \Gini\ORM\RUser::getInfo($email);
-
-        // 参数验证
-        $check_keys = ['name', 'institution', 'phone'];
-
-        // 如果不是gapper用户而是新用户注册需要验证密码
-        if (!$guser) {
-            array_push($check_keys, 'password');
-
-            if (count(array_diff($check_keys, array_keys($params)))) {
-                throw \Gini\IoC::construct('\Gini\API\Exception', '异常参数传入', 1001);
-            }
-
-            // 调用gapper rpc 来将用户注册为gapper用户
-            $gapperUser = a('ruser');
-            $gapperUser->name = $params['name'];
-            $gapperUser->username = $gapperUser->email = $params['email'];
-            $gapperUser->password = $params['password'];
-            $gapperId = $gapperUser->save();
-        } else {
-            // 用户已经是gapper用户
-
-            if (count(array_diff($check_keys, array_keys($params)))) {
-                throw \Gini\IoC::construct('\Gini\API\Exception', '异常参数传入', 1001);
-            }
-
-            $gapperId = $guser['id'];
-        }
-
-        // 对于已经刷入 yiqikong-user 的用户避免重复注册
-        $luser = a('user')->whose('gapper_id')->is($gapperId);
-        if ($luser) {
-            return;
-        }
-
-        // 在 yiqikong_user 存储用户的具体信息
+        // 调用gapper rpc 来将用户注册为gapper用户
+        $gapperUser = a('ruser');
+        $gapperUser->name = $params['name'];
+        $gapperUser->username = $gapperUser->email = $params['email'];
+        $gapperUser->password = $params['password'];
+        $gapperUser->phone = $params['phone'];
+        $gapperId = $gapperUser->save();
         if ($gapperId) {
-        	$user = a('user');
-        	$user->name = $params['name'];
+            $user = a('user');
+            $user->name = $params['name'];
             $user->email = $params['email'];
             $user->phone = $params['phone'];
             $user->identity = $params['identity'];
             $user->institution = $params['institution'];
             $user->gapper_id = $gapperId;
-            $user->gender = $params['gender'];
-            $user->residence = $params['residence'];
-            $user->initials = $params['initials'];
-            $user->icon = $params['icon'];
-            $user->ctime = $params['ctime'];
-            $user->atime = $params['atime'];
-            $user->wechat_bind_status = $params['wechat_bind_status'];
-            $user->wechat_openid = $params['wechat_openid'];
-            $user->lab_id = $params['lab_id'];
-            $user->is_admin = $params['is_admin'];
             $result = $user->save();
             if ($result) {
-                // 对于web新注册的用户生成激活链接中的key存入activation表并返回
-                if (!$guser) {
-                    $key = $user->createActivationKey();
-                    if ($key) {
-                        return $key;
-                    }
-                } else {
-                    return true;
+                $key = $user->createActivationKey();
+                if ($key) {
+                    return $key;
                 }
             }
         }
-
         return false;
 	}
+
+    // 添加 yiqikong-user 用户 (已经是gapper用户)
+    public function actionAdd($params)
+    {
+        $check_keys = ['name', 'email', 'institution', 'phone'];
+
+        // 参数验证
+        if (count(array_diff($check_keys, array_keys($params)))) {
+            throw \Gini\IoC::construct('\Gini\API\Exception', '异常参数传入', 1001);
+        }
+
+        // 判断是否为gapper用户
+        $guser = \Gini\ORM\RUser::getInfo($params['email']);
+        if (!$guser) {
+            return false;
+        }
+
+        $user = a('user');
+
+        foreach($params as $k => $v) {
+            $user->$k = $v;
+        }
+
+        // 对于已经是gapper用户, 在yiqikong-user里边添加用户的时候无需再激活
+        $user->atime = date('Y-m-d H:i:s');
+
+        $user->gapper_id = $guser['id'];
+        if ($user->save()) {
+            return true;
+        }
+
+        return false;
+    }
 
     // 新注册用户进行激活
     public function actionActivation($key)
@@ -187,14 +173,8 @@ class User extends \Gini\Controller\API
 
         if ($user) {
             // 更新用户信息
-            $user->name = $params['name'];
-            $user->gender = $params['gender'];
-            $user->phone = $params['phone'];
-            $user->identity = $params['identity'];
-            $user->residence = $params['residence'];
-            $user->institution = $params['institution'];
-            if ($params['icon']) {
-                $user->icon = $params['icon']
+            foreach($params as $k => $v) {
+                $user->$k = $v;
             }
 
             if ($user->save()) {
@@ -206,28 +186,20 @@ class User extends \Gini\Controller\API
     }
 
     // 登录时调用gapper rpc进行用户信息账户密码的验证
-    public function actionVerify($username, $password)
+    public function actionLogin($username, $password)
     {
-        return \Gini\ORM\RUser::loginViaGapper($username, $password);
-    }
-
-    public function actionAuthorize($email, $password) {
-        if (\Gini\ORM\RUser::loginViaGapper($username, $password)) {
-            $gapper = \Gini\ORM\RUser::getInfo($email);
-            $user = a('user')->whose('email')->is($email);
+        $res = \Gini\ORM\RUser::loginViaGapper($username, $password);
+        if ($res) {
+            // 判断登陆地用户是不是yiqikong-user的用户
+            $user = a('user')->whose('email')->is($username);
             if ($user->id) {
-                if ($user->wechat_openid) {
-                    return 'wechat|'.$user->wechat_openid;
-                } else {
-                    return 'yiqikong|'.$user->id;
-                }       
+                return true;
             } else {
-                return 'gapper|'.$gapper['id'];
+                throw \Gini\IoC::construct('\Gini\API\Exception', '用户不是yiqikong-user用户', 1005);
             }
-        } else {
-            return false;
         }
-        
+
+        return false;
     }
 
     // 用户进行绑定微信 或者 更新了微信账重新绑定自已原有的账户时调用
@@ -347,3 +319,4 @@ class User extends \Gini\Controller\API
     }
 
 }
+
