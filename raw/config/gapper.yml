@@ -1,8 +1,8 @@
 ---
 rpc:
   url: http://192.168.0.5:9901/api
-  client_id: bdf802d2d011624f8fe657c6fca17d9f087abc46
-  client_secret: 1fa901a23ce8a0584d6b718ba300f9d7bcdc2f21
+  client_id: e4487c16e06299b028f9175b08f6d85acf54e025
+  client_secret: bd7f1e6ed72d10dd03264de8d10067aca351bb37
 
 server_home: http://192.168.0.5:9901/api
 ...

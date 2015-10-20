@@ -59,6 +59,34 @@ class User extends \Gini\Controller\API
         return false;
     }
 
+    // 当注册用户时候验证注册邮箱/电话/身份证号是否已经存在
+    public function actionValidateInfo($data)
+    {
+        if (!$data) {
+            throw \Gini\IoC::construct('\Gini\API\Exception', '异常参数传入', 1001);
+        } else {
+            // 去 gapper 验证邮箱
+            if (preg_match('/^[\w-]+(\.[\w-]+)*@[\w-]+(\.[\w-]+)+$/', $data)) {
+                if (\Gini\ORM\RUser::getInfo($email)) {
+                    return true;
+                }
+            // 在yiqikong-user中验证电话号码
+            } elseif (strlen($data) != 18) {
+                $user = a('user')->whose('phone')->is($data);
+                if ($user->id) {
+                    return true;
+                }
+            // 在yiqikong-user中验证省份证号的唯一性
+            } else {
+                $user = a('user')->whose('identity')->is($data);
+                if ($user->id) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     // 新用户注册调用 (不是gapper用户)
 	public function actionCreate($params)
 	{
@@ -178,7 +206,7 @@ class User extends \Gini\Controller\API
             }
 
             if ($user->save()) {
-                return true
+                return true;
             }
         }
 
@@ -220,7 +248,7 @@ class User extends \Gini\Controller\API
                 try {
                     $identity = \Gini\ORM\RUser::getIdentity((int) $user->gapper_id);
                     if (!$identity || $identity != $openId) {
-                        $flag = \Gini\ORM\RUser::linkIdentity((int) $user->gapper_id, 'wechat', $openId);
+                        $flag = \Gini\ORM\RUser::linkIdentity((int) $user->gapper_id, $openId);
 
                         if ($flag){
                             $user->wechat_bind($openid);
@@ -272,7 +300,7 @@ class User extends \Gini\Controller\API
                     $olduser = $this->_getUser($openId);    // 要解绑的旧用户
                     if ($olduser->gapper_id) {
                         // 对老用户进行解绑
-                        $flag = \Gini\ORM\RUser::unlinkIdentity((int) $olduser->gapper_id, 'wechat', $openId);
+                        $flag = \Gini\ORM\RUser::unlinkIdentity((int) $olduser->gapper_id, $openId);
 
                         if($flag) {
                             $olduser->wechat_unbind();
@@ -288,7 +316,7 @@ class User extends \Gini\Controller\API
                                 ], 'Lims-CF');
 
                             // 绑定新用户
-                            $flag = \Gini\ORM\RUser::linkIdentity((int) $user->gapper_id, 'wechat', $openId);
+                            $flag = \Gini\ORM\RUser::linkIdentity((int) $user->gapper_id, $openId);
 
                             if ($flag){
                                 $user->wechat_bind($openid);
