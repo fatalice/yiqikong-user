@@ -26,22 +26,6 @@ namespace Gini\Module {
                 $errors[] = 'Need config debade queues Lims-CF';
             }
 
-            $directory = \Gini\Config::get('servers')['Directory'];
-            if (!$directory) {
-                $errors[] = 'Need config servers Directory';
-            } else {
-                $api = $directory['api'];
-                try {
-                    //如果访问不到, 报错
-                    if (get_headers($api)[0] != 'HTTP/1.1 200 OK') {
-                        $errors[] = 'Config Directory API Cannot Access!';
-                    }
-                } catch (\Exception $e) {
-                    //如果抛出错误, 也是访问不到
-                    $errors[] = 'Config Directory API Cannot Access!';
-                }
-            }
-
             //不应设置运行环境
             if ($_SERVER['GINI_ENV']) {
                 $errors[] = 'NEED unset GINI_ENV';
