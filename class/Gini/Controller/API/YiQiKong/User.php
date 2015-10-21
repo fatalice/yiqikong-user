@@ -62,26 +62,22 @@ class User extends \Gini\Controller\API
     // 当注册用户时候验证注册邮箱/电话/身份证号是否已经存在
     public function actionValidateInfo($data)
     {
-        if (!$data) {
-            throw \Gini\IoC::construct('\Gini\API\Exception', '异常参数传入', 1001);
+        // 去 gapper 验证邮箱
+        if (preg_match('/^[\w-]+(\.[\w-]+)*@[\w-]+(\.[\w-]+)+$/', $data)) {
+            if (\Gini\ORM\RUser::getInfo($data)) {
+                return true;
+            }
+        // 在yiqikong-user中验证电话号码
+        } elseif (strlen($data) != 18) {
+            $user = a('user')->whose('phone')->is($data);
+            if ($user->id) {
+                return true;
+            }
+        // 在yiqikong-user中验证省份证号的唯一性
         } else {
-            // 去 gapper 验证邮箱
-            if (preg_match('/^[\w-]+(\.[\w-]+)*@[\w-]+(\.[\w-]+)+$/', $data)) {
-                if (\Gini\ORM\RUser::getInfo($email)) {
-                    return true;
-                }
-            // 在yiqikong-user中验证电话号码
-            } elseif (strlen($data) != 18) {
-                $user = a('user')->whose('phone')->is($data);
-                if ($user->id) {
-                    return true;
-                }
-            // 在yiqikong-user中验证省份证号的唯一性
-            } else {
-                $user = a('user')->whose('identity')->is($data);
-                if ($user->id) {
-                    return true;
-                }
+            $user = a('user')->whose('identity')->is($data);
+            if ($user->id) {
+                return true;
             }
         }
         return false;
