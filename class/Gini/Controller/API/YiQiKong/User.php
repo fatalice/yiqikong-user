@@ -30,7 +30,27 @@ class User extends \Gini\Controller\API
             }
         }
         return $user;
+    }
 
+    private function _getUserData($user)
+    {
+        return [
+            'id' => $user->id,
+            'name' => $user->name,
+            'gender' => $user->gender,
+            'email' => $user->email,
+            'phone' => $user->phone,
+            'identity' => $user->identity,
+            'residence' => $user->residence,
+            'institution' => $user->institution,
+            'icon' => $user->icon,
+            'gapper_id' => $user->gapper_id,
+            'atime' => $user->atime,
+            'wechat_bind_status' => $user->wechat_bind_status,
+            'wechat_openid' => $user->wechat_openid,
+            'lab_id' => $user->lab_id,
+            'id_admin' => $user->is_admin,
+        ];
     }
 
     // 获取用户信息
@@ -38,24 +58,23 @@ class User extends \Gini\Controller\API
     {
         $user = $this->_getUser($id);
         if ($user->id) {
-            return [
-                'id' => $user->id,
-                'name' => $user->name,
-                'gender' => $user->gender,
-                'email' => $user->email,
-                'phone' => $user->phone,
-                'identity' => $user->identity,
-                'residence' => $user->residence,
-                'institution' => $user->institution,
-                'icon' => $user->icon,
-                'gapper_id' => $user->gapper_id,
-                'atime' => $user->atime,
-                'wechat_bind_status' => $user->wechat_bind_status,
-                'wechat_openid' => $user->wechat_openid,
-                'lab_id' => $user->lab_id,
-                'id_admin' => $user->is_admin,
-            ];
+            return $this->_getUserData($user);
         }
+
+        return false;
+    }
+
+    public function actionGetUserByActivationKey($key)
+    {
+        $activation = a('activation')->whose('key')->is($key);
+
+        if ($userId = $activation->user_id) {
+            $user = a('user', $userId);
+            if ($user->id) {
+                return $this->_getUserData($user);
+            }
+        }
+
         return false;
     }
 
@@ -157,7 +176,7 @@ class User extends \Gini\Controller\API
     {
         $activation = a('activation')->whose('key')->is($key);
 
-        if ($userId = $activation->expiration) {
+        if ($userId = $activation->user_id) {
             if (strtotime($activation->expiration) >= time()) {
                 $user = a('user', $userId);
                 if ($user->activation()) {
@@ -170,8 +189,6 @@ class User extends \Gini\Controller\API
         } else {
             throw \Gini\IoC::construct('\Gini\API\Exception', '账户已经激活', 1003);
         }
-
-        return false;
     }
 
     // 激活链接超时, 需要重新发送激活链接
@@ -341,6 +358,5 @@ class User extends \Gini\Controller\API
 
         return $flag;
     }
-
 }
 
