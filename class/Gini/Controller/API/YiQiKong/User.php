@@ -192,7 +192,7 @@ class User extends \Gini\Controller\API
     }
 
     // 激活链接超时, 需要重新发送激活链接
-    public function actionReSend($key)
+    public function actionreSendActivationUrl($key)
     {
         $activation = a('activation')->whose('key')->is($key);
         if ($userId = $activation->user_id) {
