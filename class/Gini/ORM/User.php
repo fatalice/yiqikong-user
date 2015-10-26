@@ -71,7 +71,22 @@ class User extends Object
         return false;
     }
 
-    public function wechat_bind($openId) {
+    public function wechat_bind($openId, $labId) {
+
+        // 记录用户所在站点的信息
+        if ($labId) {
+            $tag = a('tag')->whose('name')->is($labId);
+            if (!$tag->id) {
+                $tag->name = $labId;
+                $tag->save();
+            }
+
+            $tag_user = a('tag/user');
+            $tag_user->user = $this;
+            $tag_user->tag = $tag;
+            $tag_user->save();
+        }
+
         $this->wechat_bind_status = self::BIND_STATUS_SUCCESS;
         $this->wechat_openid = $openId;
 

@@ -250,7 +250,7 @@ class User extends \Gini\Controller\API
     }
 
     // 用户进行绑定微信 或者 更新了微信账重新绑定自已原有的账户时调用
-    public function actionLinkWechat($id, $openId, $labId)
+    public function actionLinkWechat($id, $openId, $labId='')
     {
         // 根据 $id 获取用户
         $user = $this->_getUser($id);
@@ -270,12 +270,15 @@ class User extends \Gini\Controller\API
                         $flag = \Gini\ORM\RUser::linkIdentity((int) $user->gapper_id, $openId);
 
                         if ($flag){
-                            $user->wechat_bind($openid);
+                            $user->wechat_bind($openid, $labId);
                             $params = [
                                 'user' => (int) $user->gapper_id,
                                 'openid' => $openId,
-                                'labId' => $user->lab_id,
                             ];
+
+                            if ($labId) {
+                                $params['labId'] = $labId;
+                            }
 
                             //发送给所有的 Lims-CF 服务器, 要求进行绑定
                             \Gini\Debade\Queue::of('Lims-CF')->push(
