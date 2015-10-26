@@ -17,7 +17,7 @@ class User extends \Gini\Controller\API
         if (!$id) {
             throw \Gini\IoC::construct('\Gini\API\Exception', '异常参数传入', 1001);
         } else {
-            if (is_int($id)) {
+            if (is_numeric($id)) {
                 $user = a('user')->whose('gapper_id')->is($id);
             } elseif (is_string($id)) {
                 if (preg_match('/^[\w-]+(\.[\w-]+)*@[\w-]+(\.[\w-]+)+$/', $id)) {
@@ -49,7 +49,7 @@ class User extends \Gini\Controller\API
             'wechat_bind_status' => $user->wechat_bind_status,
             'wechat_openid' => $user->wechat_openid,
             'lab_id' => $user->lab_id,
-            'id_admin' => $user->is_admin,
+            'is_admin' => $user->is_admin,
         ];
     }
 
