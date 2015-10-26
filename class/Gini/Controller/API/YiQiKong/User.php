@@ -270,7 +270,7 @@ class User extends \Gini\Controller\API
                         $flag = \Gini\ORM\RUser::linkIdentity((int) $user->gapper_id, $openId);
 
                         if ($flag){
-                            $user->wechat_bind($openid, $labId);
+                            $user->wechat_bind($openId, $labId);
                             $params = [
                                 'user' => (int) $user->gapper_id,
                                 'openid' => $openId,
@@ -288,7 +288,7 @@ class User extends \Gini\Controller\API
                                 ], 'Lims-CF');
                         }
                     } else if ($identity == $openId) {
-                        if ($user->wechat_bind($openid)) {
+                        if ($user->wechat_bind($openId)) {
                             $flag = true;
                         }
                     }
@@ -341,7 +341,7 @@ class User extends \Gini\Controller\API
                             $flag = \Gini\ORM\RUser::linkIdentity((int) $user->gapper_id, $openId);
 
                             if ($flag){
-                                $user->wechat_bind($openid);
+                                $user->wechat_bind($openId);
                                 $params = [
                                     'user' => (int) $user->gapper_id,
                                     'openid' => $openId,
