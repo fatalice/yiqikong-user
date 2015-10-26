@@ -112,29 +112,35 @@ class User extends \Gini\Controller\API
             throw \Gini\IoC::construct('\Gini\API\Exception', '异常参数传入', 1001);
         }
 
-        // 调用gapper rpc 来将用户注册为gapper用户
-        $gapperUser = a('ruser');
-        $gapperUser->name = $params['name'];
-        $gapperUser->username = $gapperUser->email = $params['email'];
-        $gapperUser->password = $params['password'];
-        $gapperUser->phone = $params['phone'];
-        $gapperId = $gapperUser->save();
-        if ($gapperId) {
-            $user = a('user');
-            $user->name = $params['name'];
-            $user->email = $params['email'];
-            $user->phone = $params['phone'];
-            $user->identity = $params['identity'];
-            $user->institution = $params['institution'];
-            $user->gapper_id = $gapperId;
-            $result = $user->save();
-            if ($result) {
-                $key = $user->createActivationKey();
-                if ($key) {
-                    return $key;
+        $user = a('user');
+        $user->name = $params['name'];
+        $user->email = $params['email'];
+        $user->phone = $params['phone'];
+        $user->identity = $params['identity'];
+        $user->institution = $params['institution'];
+        $res = $user->save();
+        if ($res) {
+            // 调用gapper rpc 来将用户注册为gapper用户
+            $gapperUser = a('ruser');
+            $gapperUser->name = $params['name'];
+            $gapperUser->username = $gapperUser->email = $params['email'];
+            $gapperUser->password = $params['password'];
+            $gapperUser->phone = $params['phone'];
+            $gapperId = $gapperUser->save();
+            if ($gapperId) {
+                $user->gapper_id = $gapperId;
+                $res = $user->save();
+                if ($res) {
+                    $key = $user->createActivationKey();
+                    if ($key) {
+                        return $key;
+                    }
                 }
+            } else {
+                $user->delete();
             }
         }
+
         return false;
 	}
 
@@ -244,7 +250,7 @@ class User extends \Gini\Controller\API
     }
 
     // 用户进行绑定微信 或者 更新了微信账重新绑定自已原有的账户时调用
-    public function actionLinkWechat($id, $openId)
+    public function actionLinkWechat($id, $openId, $labId)
     {
         // 根据 $id 获取用户
         $user = $this->_getUser($id);
