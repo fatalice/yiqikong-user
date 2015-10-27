@@ -288,7 +288,7 @@ class User extends \Gini\Controller\API
                                 ], 'Lims-CF');
                         }
                     } else if ($identity == $openId) {
-                        if ($user->wechat_bind($openId)) {
+                        if ($user->wechat_bind($openId, $labId)) {
                             $flag = true;
                         }
                     }
@@ -298,7 +298,6 @@ class User extends \Gini\Controller\API
             }
             fclose($fp);
         }
-
         return $flag;
     }
 
