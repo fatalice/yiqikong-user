@@ -277,7 +277,7 @@ class User extends \Gini\Controller\API
                             ];
 
                             if ($labId) {
-                                $params['labId'] = $labId;
+                                $params['labid'] = $labId;
                             }
 
                             //发送给所有的 Lims-CF 服务器, 要求进行绑定
