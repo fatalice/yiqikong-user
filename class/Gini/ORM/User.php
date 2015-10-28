@@ -71,7 +71,7 @@ class User extends Object
         return false;
     }
 
-    public function wechat_bind($openId, $labId) {
+    public function wechat_bind($openId, $labId, $is_admin) {
 
         // 记录用户所在站点的信息
         if ($labId) {
@@ -82,6 +82,9 @@ class User extends Object
             }
 
             $tag_user = a('tag/user');
+            if ($is_admin) {
+                $tag_user->type = 1;
+            }
             $tag_user->user = $this;
             $tag_user->tag = $tag;
             $tag_user->save();

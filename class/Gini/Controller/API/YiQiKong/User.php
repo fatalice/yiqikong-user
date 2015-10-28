@@ -34,6 +34,21 @@ class User extends \Gini\Controller\API
 
     private function _getUserData($user)
     {
+        $labs = [];
+        $is_admin_lab = '';
+
+        $tag_users = those('tag/user')->whose('user')->is($user);
+        foreach($tag_users as $tag_user) {
+            $tag = a('tag', $tag_user->tag);
+            if ($tag->id) {
+                $name = $tag->name;
+                if ($tag_user->type == 1) {
+                    $is_admin_lab = $name;
+                }
+                array_push($labs, $name);
+            }
+        }
+
         return [
             'id' => $user->id,
             'name' => $user->name,
@@ -48,8 +63,8 @@ class User extends \Gini\Controller\API
             'atime' => $user->atime,
             'wechat_bind_status' => $user->wechat_bind_status,
             'wechat_openid' => $user->wechat_openid,
-            'lab_id' => $user->lab_id,
-            'is_admin' => $user->is_admin,
+            'lab_ids' => $labs,         // 数组, 已经绑定的站点, ['1', 'admin', 'nankai', ...]
+            'is_admin_lab' => $is_admin_lab, // 机主建站后的站点的id
         ];
     }
 
@@ -250,7 +265,7 @@ class User extends \Gini\Controller\API
     }
 
     // 用户进行绑定微信 或者 更新了微信账重新绑定自已原有的账户时调用
-    public function actionLinkWechat($id, $openId, $labId='')
+    public function actionLinkWechat($id, $openId, $labId='', $is_admin=false)
     {
         // 根据 $id 获取用户
         $user = $this->_getUser($id);
@@ -265,34 +280,24 @@ class User extends \Gini\Controller\API
         if ($fp) {
             if (flock($fp, LOCK_EX | LOCK_NB)) {
                 try {
-                    $identity = \Gini\ORM\RUser::getIdentity((int) $user->gapper_id);
-                    if (!$identity || $identity != $openId) {
-                        $flag = \Gini\ORM\RUser::linkIdentity((int) $user->gapper_id, $openId);
+                    $user->wechat_bind($openId, $labId, $is_admin);
+                    $params = [
+                        'user' => (int) $user->gapper_id,
+                        'openid' => $openId,
+                        'email' => $user->email,
+                    ];
 
-                        if ($flag){
-                            $user->wechat_bind($openId, $labId);
-                            $params = [
-                                'user' => (int) $user->gapper_id,
-                                'openid' => $openId,
-                                'email' => $user->email,
-                            ];
-
-                            if ($labId) {
-                                $params['labid'] = $labId;
-                            }
-
-                            //发送给所有的 Lims-CF 服务器, 要求进行绑定
-                            \Gini\Debade\Queue::of('Lims-CF')->push(
-                                [
-                                    'method' => 'wechat/bind',
-                                    'params' => $params,
-                                ], 'Lims-CF');
-                        }
-                    } else if ($identity == $openId) {
-                        if ($user->wechat_bind($openId, $labId)) {
-                            $flag = true;
-                        }
+                    if ($labId) {
+                        $params['labid'] = $labId;
                     }
+
+                    //发送给所有的 Lims-CF 服务器, 要求进行绑定
+                    \Gini\Debade\Queue::of('Lims-CF')->push(
+                        [
+                            'method' => 'wechat/bind',
+                            'params' => $params,
+                        ], 'Lims-CF');
+                    $flag = true;
                 } catch (\Gini\PRC\Exception $e) {
                 }
                 flock($fp, LOCK_UN);
