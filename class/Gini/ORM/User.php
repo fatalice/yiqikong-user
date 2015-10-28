@@ -98,10 +98,19 @@ class User extends Object
     }
 
     public function wechat_unbind() {
+
+        // 删除绑定的站点信息
+        $tag_users = those('tag/user')->whose('user')->is($this);
+        foreach($tag_users as $tag_user) {
+            if ($tag_user->type == 0) {
+                $tag_user->delete();
+            }
+        }
+
         $this->wechat_bind_status = self::BIND_STATUS_NOT_YET;
         $this->wechat_openid = NULL;
 
         return $this->save();
     }
-    
+
 }

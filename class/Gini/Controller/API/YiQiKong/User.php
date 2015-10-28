@@ -372,5 +372,22 @@ class User extends \Gini\Controller\API
 
         return $flag;
     }
+
+    // 解绑微信
+    public function actionUnbind($gapper_id)
+    {
+        // 根据 $gapper_id 获取用户
+        $user = $this->_getUser($gapper_id);    // 要绑定的新用户
+        if (!$user->id) {
+            throw \Gini\IoC::construct('\Gini\API\Exception', '用户不存在', 1004);
+        }
+
+        if ($user->unbind()) {
+            return true;
+        }
+
+        return false;
+    }
+
 }
 
