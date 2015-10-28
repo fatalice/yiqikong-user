@@ -274,6 +274,7 @@ class User extends \Gini\Controller\API
                             $params = [
                                 'user' => (int) $user->gapper_id,
                                 'openid' => $openId,
+                                'email' => $user->email,
                             ];
 
                             if ($labId) {
