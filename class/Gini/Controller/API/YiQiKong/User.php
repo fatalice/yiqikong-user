@@ -382,7 +382,7 @@ class User extends \Gini\Controller\API
             throw \Gini\IoC::construct('\Gini\API\Exception', '用户不存在', 1004);
         }
 
-        if ($user->unbind()) {
+        if ($user->wechat_unbind()) {
             return true;
         }
 
