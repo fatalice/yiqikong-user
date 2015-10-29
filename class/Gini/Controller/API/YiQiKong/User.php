@@ -68,12 +68,23 @@ class User extends \Gini\Controller\API
         ];
     }
 
-    // 获取用户信息
+    // 获取 yiqikong-user 用户信息
     public function actionGetInfo($id)
     {
         $user = $this->_getUser($id);
         if ($user->id) {
             return $this->_getUserData($user);
+        }
+
+        return false;
+    }
+
+    // 获取 gapper 用户信息
+    public function actionGetGapperInfo($id)
+    {
+        $gapperUser = \Gini\ORM\RUser::getInfo($id);
+        if ($gapperUser) {
+            return $gapperUser;
         }
 
         return false;
