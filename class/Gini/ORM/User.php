@@ -60,7 +60,7 @@ class User extends Object
     {
         $key = substr(md5($this->email.time()), 5, 20);
         $expiration = date('Y-m-d H:i:s', strtotime("+2 days", time()));
-        $activation = a('activation')->whose('user_id')->is($this->id);
+        $activation = a('activation');
         $activation->user_id = $this->id;
         $activation->key = $key;
         $activation->expiration = $expiration;

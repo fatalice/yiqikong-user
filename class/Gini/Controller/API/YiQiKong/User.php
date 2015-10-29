@@ -39,9 +39,8 @@ class User extends \Gini\Controller\API
 
         $tag_users = those('tag/user')->whose('user')->is($user);
         foreach($tag_users as $tag_user) {
-            $tag = a('tag', $tag_user->tag);
-            if ($tag->id) {
-                $name = $tag->name;
+            if ($tag_user->id) {
+                $name = $tag_user->tag->name;
                 if ($tag_user->type == 1) {
                     $is_admin_lab = $name;
                 }
