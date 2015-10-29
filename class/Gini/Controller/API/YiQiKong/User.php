@@ -9,7 +9,7 @@ class User extends \Gini\Controller\API
      * @throws exception   1002: 激活连接超时
      * @throws exception   1003: 账户已经被激活
      * @throws exception   1004: 用户不存在
-     * @throws exception   1005: 用户为gapper用户, 但是不是yiqikong-user的用户
+     * @throws exception   1005: gapper用户不存在
      **/
 
     private function _getUser($id)
@@ -267,7 +267,17 @@ class User extends \Gini\Controller\API
             if ($user->id) {
                 return true;
             } else {
-                throw \Gini\IoC::construct('\Gini\API\Exception', '用户不是yiqikong-user用户', 1005);
+                // 用户不是 yiqikong-user 用户, 将其添加为 yiqikong 用户
+                $gapperUser = \Gini\ORM\RUser::getInfo($username);
+                $user = a('user');
+                $user->gapper_id = $gapperUser['id'];
+                $user->name = $gapperUser['name'];
+                $user->email = $gapperUser['email'];
+                $user->phone = $gapperUser['phone'];
+                $user->atime = date('Y-m-d H:i:s');
+                if ($user->save()) {
+                    return true;
+                }
             }
         }
 
