@@ -320,6 +320,12 @@ class User extends \Gini\Controller\API
 
                     if ($labId) {
                         $params['labid'] = $labId;
+                    } else {
+                        $userInfo = $this->_getUserData($user);
+                        $labId = $userInfo['is_admin_lab'];
+                        if ($labId) {
+                            $params['labid'] = $labId;
+                        }
                     }
 
                     //发送给所有的 Lims-CF 服务器, 要求进行绑定
