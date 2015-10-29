@@ -250,10 +250,20 @@ class User extends \Gini\Controller\API
 
         $user = a('user')->whose('email')->is($params['email']);
 
+        $check_keys = [
+            'name',
+            'gender',
+            'phone',
+            'identity',
+            'residence',
+            'institution',
+            'icon',
+        ];
+
         if ($user) {
             // 更新用户信息
-            foreach($params as $k => $v) {
-                $user->$k = $v;
+            foreach($check_keys as $k) {
+                $user->$k = $params[$k];
             }
 
             if ($user->save()) {
