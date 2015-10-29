@@ -275,6 +275,17 @@ class User extends \Gini\Controller\API
         return false;
     }
 
+    // 只验证用户是否能够登陆gapper
+    public function actionGapperLogin($username, $password)
+    {
+        $res = \Gini\ORM\RUser::loginViaGapper($username, $password);
+        if ($res) {
+            return true;
+        }
+
+        return false;
+    }
+
     // 用户进行绑定微信 或者 更新了微信账重新绑定自已原有的账户时调用
     public function actionLinkWechat($id, $openId, $labId='', $is_admin=false)
     {
