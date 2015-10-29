@@ -128,7 +128,7 @@ class User extends \Gini\Controller\API
     }
 
     // 新用户注册调用 (不是gapper用户)
-	public function actionCreate($params)
+	public function actionCreate($params, $activation=false)
 	{
         $check_keys = ['name', 'email', 'password', 'institution', 'phone'];
 
@@ -154,11 +154,18 @@ class User extends \Gini\Controller\API
             $gapperId = $gapperUser->save();
             if ($gapperId) {
                 $user->gapper_id = $gapperId;
+                if (!$activation) {
+                    $user->atime = date('Y-m-d H:i:s');
+                }
                 $res = $user->save();
                 if ($res) {
-                    $key = $user->createActivationKey();
-                    if ($key) {
-                        return $key;
+                    if ($activation){
+                        $key = $user->createActivationKey();
+                        if ($key) {
+                            return $key;
+                        }
+                    } else {
+                        return true;
                     }
                 }
             } else {
