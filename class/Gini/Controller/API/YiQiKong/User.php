@@ -234,6 +234,7 @@ class User extends \Gini\Controller\API
     {
         $activation = a('activation')->whose('key')->is($key);
         if ($userId = $activation->user_id) {
+            $activation->delete();
             $user = a('user', $userId);
             $key = $user->createActivationKey();
             if ($key) {
@@ -362,10 +363,10 @@ class User extends \Gini\Controller\API
     }
 
     // 已绑定微信的账号再绑定另外一个YiQiKong账号时调用
-    public function actionSwitchWechat($id, $openId)
+    public function actionSwitchWechat($id, $openId, $new_labId)
     {
         // 根据 $id 获取用户
-        $user = $this->_getUser($id);    // 要绑定的新用户
+        $user = $this->_getUser($id);    // 一般根据邮箱获取要绑定的新用户
         if (!$user->id) {
             throw \Gini\IoC::construct('\Gini\API\Exception', '用户不存在', 1004);
         }
@@ -377,44 +378,36 @@ class User extends \Gini\Controller\API
         if ($fp) {
             if (flock($fp, LOCK_EX | LOCK_NB)) {
                 try {
-                    // 获取旧 YiQiKong 账号的用户信息
-                    $olduser = $this->_getUser($openId);    // 要解绑的旧用户
+                    $olduser = $this->_getUser($openId);    // 一般根据openId获取要解绑的旧用户
                     if ($olduser->gapper_id) {
+                        $olduser_labs = $this->_getUserData($olduser)['lab_ids'];
                         // 对老用户进行解绑
-                        $flag = \Gini\ORM\RUser::unlinkIdentity((int) $olduser->gapper_id, $openId);
-
-                        if($flag) {
-                            $olduser->wechat_unbind();
-
-                            //发送给所有的 Lims-CF 服务器, 要求进行解绑
+                        $olduser->wechat_unbind();
+                        foreach ($olduser_labs as $labId) {
                             \Gini\Debade\Queue::of('Lims-CF')->push(
                                 [
                                     'method' => 'wechat/unbind',
                                     'params' => [
                                         'user' => (int) $olduser->gapper_id,
-                                        'labId' => $olduser->lab_id,
+                                        'labid' => $labId,
                                     ],
                                 ], 'Lims-CF');
-
-                            // 绑定新用户
-                            $flag = \Gini\ORM\RUser::linkIdentity((int) $user->gapper_id, $openId);
-
-                            if ($flag){
-                                $user->wechat_bind($openId);
-                                $params = [
-                                    'user' => (int) $user->gapper_id,
-                                    'openid' => $openId,
-                                    'labId' => $user->lab_id,
-                                ];
-
-                                //发送给所有的 Lims-CF 服务器, 要求进行绑定
-                                \Gini\Debade\Queue::of('Lims-CF')->push(
-                                    [
-                                        'method' => 'wechat/bind',
-                                        'params' => $params,
-                                    ], 'Lims-CF');
-                            }
                         }
+                        // 绑定新用户
+                        $user->wechat_bind($openId, $new_labId, false);
+                        // push 到远程
+                        $params = [
+                            'user' => (int) $user->gapper_id,
+                            'openid' => $openId,
+                            'email' => $user->email,
+                            'labid' => $new_labId,
+                        ];
+                        \Gini\Debade\Queue::of('Lims-CF')->push(
+                            [
+                                'method' => 'wechat/bind',
+                                'params' => $params,
+                            ], 'Lims-CF');
+                        $flag = true;
                     }
                 } catch (\Gini\PRC\Exception $e) {
                 }
