@@ -436,5 +436,46 @@ class User extends \Gini\Controller\API
         return false;
     }
 
+    // 记录用户再次绑定微信时的站点
+    public function actionSetLabId($openId, $labId)
+    {
+        // 根据 openId 获取用户信息
+        $user = $this->_getUser($openId);
+        if (!$user->id) {
+            throw \Gini\IoC::construct('\Gini\API\Exception', '用户不存在', 1004);
+        }
+
+        // 如果站点信息不在tag表中, 将站点信息加入tag表中
+        $tag = a('tag')->whose('name')->is($labId);
+        if (!$tag->id) {
+            $tag->name = $labId;
+            $tag->save();
+        }
+
+        // 判断站点信息是否已经和用户信息被记录在tag/user表中
+        $userInfo = $this->_getUserData($user);
+        if (!in_array($labId, $userInfo['lab_ids'])) {
+            $tag_user = a('tag/user');
+            $tag_user->user = $user;
+            $tag_user->tag = $tag;
+            $tag_user->save();
+
+            // 将绑定信息通过debade push 远程的lims站点上去
+            $params = [
+                'user' => (int) $user->gapper_id,
+                'openid' => $openId,
+                'email' => $user->email,
+                'labid' => $labId,
+            ];
+
+            \Gini\Debade\Queue::of('Lims-CF')->push(
+                [
+                    'method' => 'wechat/bind',
+                    'params' => $params,
+                ], 'Lims-CF');
+        }
+
+        return true;
+    }
 }
 
