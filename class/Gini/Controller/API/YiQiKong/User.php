@@ -429,7 +429,19 @@ class User extends \Gini\Controller\API
             throw \Gini\IoC::construct('\Gini\API\Exception', '用户不存在', 1004);
         }
 
+        $lab_ids = $this->_getUserData($user)['lab_ids'];
         if ($user->wechat_unbind()) {
+            // debade push 解绑信息到其他站点进行解绑
+            foreach ($lab_ids as $labId) {
+                \Gini\Debade\Queue::of('Lims-CF')->push(
+                    [
+                        'method' => 'wechat/unbind',
+                        'params' => [
+                            'user' => (int) $user->gapper_id,
+                            'labid' => $labId,
+                        ],
+                    ], 'Lims-CF');
+            }
             return true;
         }
 
