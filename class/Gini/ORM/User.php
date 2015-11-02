@@ -34,7 +34,8 @@ class User extends Object
         'unique:email',
         'phone',
         'institution',
-        'unique:gapper_id'
+        'unique:gapper_id',
+        'unique:wechat_openid',
     ];
 
     public function save()
