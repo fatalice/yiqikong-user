@@ -159,6 +159,11 @@ class User extends \Gini\Controller\API
                 }
                 $res = $user->save();
                 if ($res) {
+                    // 用户添加成功, 调用yiqikong-billing API 初始化账户金额信息
+                    $billingRPC = \Gini\IoC::construct('\Gini\RPC', \Gini\Config::get('rpc.billing')['url']);
+                    $userAccount['user'] = $user->gapper_id;
+                    $billingRPC->YiQiKong->Billing->addAccount($userAccount);
+
                     if ($activation){
                         $key = $user->createActivationKey();
                         if ($key) {
@@ -203,6 +208,11 @@ class User extends \Gini\Controller\API
 
         $user->gapper_id = $guser['id'];
         if ($user->save()) {
+            // 用户添加成功, 调用yiqikong-billing API 初始化账户金额信息
+            $billingRPC = \Gini\IoC::construct('\Gini\RPC', \Gini\Config::get('rpc.billing')['url']);
+            $userAccount['user'] = $user->gapper_id;
+            $billingRPC->YiQiKong->Billing->addAccount($userAccount);
+
             return true;
         }
 
