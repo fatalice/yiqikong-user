@@ -304,6 +304,10 @@ class User extends \Gini\Controller\API
                 $user->phone = $gapperUser['phone'];
                 $user->atime = date('Y-m-d H:i:s');
                 if ($user->save()) {
+                    // 用户添加成功, 调用yiqikong-billing API 初始化账户金额信息
+                    $billingRPC = \Gini\IoC::construct('\Gini\RPC', \Gini\Config::get('rpc.billing')['url']);
+                    $userAccount['user'] = $user->gapper_id;
+                    $billingRPC->YiQiKong->Billing->addAccount($userAccount);
                     return true;
                 }
             }
