@@ -503,5 +503,18 @@ class User extends \Gini\Controller\API
 
         return true;
     }
+
+    public function actionGetActivationKey($email) {
+        $user = a('user')->whose('email')->is($email);
+        if (!$user->id) {
+            throw \Gini\IoC::construct('\Gini\API\Exception', '用户不存在', 1004);
+        }
+        $activation = a('activation')->whose('user_id')->is($user->id);
+        if (!$activation->id) {
+            throw \Gini\IoC::construct('\Gini\API\Exception', '账户已经激活', 1003);
+        }
+        return $activation->key;
+    }
+
 }
 
