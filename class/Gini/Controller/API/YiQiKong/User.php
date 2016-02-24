@@ -89,20 +89,6 @@ class User extends \Gini\Controller\API
         return false;
     }
 
-    public function actionGetUserByActivationKey($key)
-    {
-        $activation = a('activation')->whose('key')->is($key);
-
-        if ($userId = $activation->user_id) {
-            $user = a('user', $userId);
-            if ($user->id) {
-                return $this->_getUserData($user);
-            }
-        }
-
-        return false;
-    }
-
     // 当注册用户时候验证注册邮箱/电话/身份证号是否已经存在
     public function actionValidateInfo($data)
     {
@@ -239,26 +225,9 @@ class User extends \Gini\Controller\API
         }
     }
 
-    // 激活链接超时, 需要重新发送激活链接
-    public function actionreSendActivationUrl($key)
-    {
-        $activation = a('activation')->whose('key')->is($key);
-        if ($userId = $activation->user_id) {
-            $activation->delete();
-            $user = a('user', $userId);
-            $key = $user->createActivationKey();
-            if ($key) {
-                return $key;
-            }
-        }
-
-        return false;
-    }
-
     // 用户更新信息
     public function actionUpdateInfo($params)
     {
-
         $user = a('user')->whose('email')->is($params['email']);
 
         $check_keys = [
@@ -294,22 +263,6 @@ class User extends \Gini\Controller\API
             $user = a('user')->whose('email')->is($username);
             if ($user->id) {
                 return true;
-            } else {
-                // 用户不是 yiqikong-user 用户, 将其添加为 yiqikong 用户
-                $gapperUser = \Gini\ORM\RUser::getInfo($username);
-                $user = a('user');
-                $user->gapper_id = $gapperUser['id'];
-                $user->name = $gapperUser['name'];
-                $user->email = $gapperUser['email'];
-                $user->phone = $gapperUser['phone'];
-                $user->atime = date('Y-m-d H:i:s');
-                if ($user->save()) {
-                    // 用户添加成功, 调用yiqikong-billing API 初始化账户金额信息
-                    $billingRPC = \Gini\IoC::construct('\Gini\RPC', \Gini\Config::get('rpc.billing')['url']);
-                    $userAccount['user'] = $user->gapper_id;
-                    $billingRPC->YiQiKong->Billing->addAccount($userAccount);
-                    return true;
-                }
             }
         }
 
@@ -325,6 +278,23 @@ class User extends \Gini\Controller\API
         }
 
         return false;
+    }
+
+    public function actionLinkGapper($username) {
+        $gapperUser = \Gini\ORM\RUser::getInfo($username);
+        $user = a('user');
+        $user->gapper_id = $gapperUser['id'];
+        $user->name = $gapperUser['name'];
+        $user->email = $gapperUser['email'];
+        $user->phone = $gapperUser['phone'];
+        $user->atime = date('Y-m-d H:i:s');
+        if ($user->save()) {
+            // 用户添加成功, 调用yiqikong-billing API 初始化账户金额信息
+            $billingRPC = \Gini\IoC::construct('\Gini\RPC', \Gini\Config::get('rpc.billing')['url']);
+            $userAccount['user'] = $user->gapper_id;
+            $billingRPC->YiQiKong->Billing->addAccount($userAccount);
+            return true;
+        }
     }
 
     // 用户进行绑定微信 或者 更新了微信账重新绑定自已原有的账户时调用
@@ -462,6 +432,48 @@ class User extends \Gini\Controller\API
         return false;
     }
 
+    public function actionGetActivationKey($email) {
+        $user = a('user')->whose('email')->is($email);
+        if (!$user->id) {
+            throw \Gini\IoC::construct('\Gini\API\Exception', '用户不存在', 1004);
+        }
+        $activation = a('activation')->whose('user_id')->is($user->id);
+        if (!$activation->id) {
+            throw \Gini\IoC::construct('\Gini\API\Exception', '账户已经激活', 1003);
+        }
+        return $activation->key;
+    }
+
+    public function actionGetUserByActivationKey($key)
+    {
+        $activation = a('activation')->whose('key')->is($key);
+
+        if ($userId = $activation->user_id) {
+            $user = a('user', $userId);
+            if ($user->id) {
+                return $this->_getUserData($user);
+            }
+        }
+
+        return false;
+    }
+
+    // 激活链接超时, 需要重新发送激活链接
+    public function actionreSendActivationUrl($key)
+    {
+        $activation = a('activation')->whose('key')->is($key);
+        if ($userId = $activation->user_id) {
+            $activation->delete();
+            $user = a('user', $userId);
+            $key = $user->createActivationKey();
+            if ($key) {
+                return $key;
+            }
+        }
+
+        return false;
+    }
+
     // 记录用户再次绑定微信时的站点
     public function actionSetLabId($openId, $labId)
     {
@@ -502,18 +514,6 @@ class User extends \Gini\Controller\API
         }
 
         return true;
-    }
-
-    public function actionGetActivationKey($email) {
-        $user = a('user')->whose('email')->is($email);
-        if (!$user->id) {
-            throw \Gini\IoC::construct('\Gini\API\Exception', '用户不存在', 1004);
-        }
-        $activation = a('activation')->whose('user_id')->is($user->id);
-        if (!$activation->id) {
-            throw \Gini\IoC::construct('\Gini\API\Exception', '账户已经激活', 1003);
-        }
-        return $activation->key;
     }
 
 }
