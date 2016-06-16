@@ -19,4 +19,9 @@ class User extends \Gini\ORM\Object
         'user',
         'tag',
     ];
+
+    public function save()
+    {
+        return parent::save();
+    }
 }

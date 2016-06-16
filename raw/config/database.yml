@@ -3,4 +3,8 @@ default:
   dsn: mysql:dbname=yiqikong_user;host=binhui_mysql.docker.local; 
   username: genee
   password: 83719730
+gapper:
+  dsn: mysql:dbname=gapper;host=host;
+  username: name
+  password: pwd
 ...

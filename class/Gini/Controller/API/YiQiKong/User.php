@@ -32,7 +32,7 @@ class User extends \Gini\Controller\API
         return $user;
     }
 
-    private function _getUserData($user)
+    private function _getData($user)
     {
         $labs = [];
         $is_admin_lab = '';
@@ -51,6 +51,7 @@ class User extends \Gini\Controller\API
         return [
             'id' => $user->id,
             'name' => $user->name,
+            'password' => \Gini\ORM\RUser::getInfo($user->gapper_id)['password'],
             'gender' => $user->gender,
             'email' => $user->email,
             'phone' => $user->phone,
@@ -72,7 +73,7 @@ class User extends \Gini\Controller\API
     {
         $user = $this->_getUser($id);
         if ($user->id) {
-            return $this->_getUserData($user);
+            return $this->_getData($user);
         }
 
         return false;
@@ -143,23 +144,28 @@ class User extends \Gini\Controller\API
                 if (!$activation) {
                     $user->atime = date('Y-m-d H:i:s');
                 }
+
                 $res = $user->save();
                 if ($res) {
                     // 用户添加成功, 调用yiqikong-billing API 初始化账户金额信息
                     $billingRPC = \Gini\IoC::construct('\Gini\RPC', \Gini\Config::get('rpc.billing')['url']);
                     $userAccount['user'] = $user->gapper_id;
                     $billingRPC->YiQiKong->Billing->addAccount($userAccount);
-
                     if ($activation){
                         $key = $user->createActivationKey();
                         if ($key) {
                             return $key;
                         }
                     } else {
-                        return true;
+                        if ($params['crypt']) {
+                            $db = \Gini\Database::db('gapper');
+                            $db->query("UPDATE `_auth` SET `password` = '{$params['crypt']}' WHERE `username` = '{$params['email']}'");
+                        }
+                        return $user->gapper_id;
                     }
                 }
-            } else {
+            } 
+            else {
                 $user->delete();
             }
         }
@@ -194,12 +200,16 @@ class User extends \Gini\Controller\API
 
         $user->gapper_id = $guser['id'];
         if ($user->save()) {
+            if ($params['crypt']) {
+                $db = \Gini\Database::db('gapper');
+                $db->query("UPDATE `_auth` SET `password` = '{$params['crypt']}' WHERE `username` = '{$params['email']}'");
+            }
             // 用户添加成功, 调用yiqikong-billing API 初始化账户金额信息
             $billingRPC = \Gini\IoC::construct('\Gini\RPC', \Gini\Config::get('rpc.billing')['url']);
             $userAccount['user'] = $user->gapper_id;
             $billingRPC->YiQiKong->Billing->addAccount($userAccount);
 
-            return true;
+            return $user->gapper_id;
         }
 
         return false;
@@ -215,7 +225,7 @@ class User extends \Gini\Controller\API
                 $user = a('user', $userId);
                 if ($user->activation()) {
                     $activation->delete();
-                    return true;
+                    return $user->gapper_id;
                 }
             } else {
                 throw \Gini\IoC::construct('\Gini\API\Exception', '激活链接超时', 1002);
@@ -323,7 +333,7 @@ class User extends \Gini\Controller\API
                     if ($labId) {
                         $params['labid'] = $labId;
                     } else {
-                        $userInfo = $this->_getUserData($user);
+                        $userInfo = $this->_getData($user);
                         $labId = $userInfo['is_admin_lab'];
                         if ($labId) {
                             $params['labid'] = $labId;
@@ -364,7 +374,7 @@ class User extends \Gini\Controller\API
                 try {
                     $olduser = $this->_getUser($openId);    // 一般根据openId获取要解绑的旧用户
                     if ($olduser->gapper_id) {
-                        $olduser_labs = $this->_getUserData($olduser)['lab_ids'];
+                        $olduser_labs = $this->_getData($olduser)['lab_ids'];
                         // 对老用户进行解绑
                         $olduser->wechat_unbind();
                         foreach ($olduser_labs as $labId) {
@@ -413,7 +423,7 @@ class User extends \Gini\Controller\API
             throw \Gini\IoC::construct('\Gini\API\Exception', '用户不存在', 1004);
         }
 
-        $lab_ids = $this->_getUserData($user)['lab_ids'];
+        $lab_ids = $this->_getData($user)['lab_ids'];
         if ($user->wechat_unbind()) {
             // debade push 解绑信息到其他站点进行解绑
             foreach ($lab_ids as $labId) {
@@ -451,7 +461,7 @@ class User extends \Gini\Controller\API
         if ($userId = $activation->user_id) {
             $user = a('user', $userId);
             if ($user->id) {
-                return $this->_getUserData($user);
+                return $this->_getData($user);
             }
         }
 
@@ -491,7 +501,7 @@ class User extends \Gini\Controller\API
         }
 
         // 判断站点信息是否已经和用户信息被记录在tag/user表中
-        $userInfo = $this->_getUserData($user);
+        $userInfo = $this->_getData($user);
         if (!in_array($labId, $userInfo['lab_ids'])) {
             $tag_user = a('tag/user');
             $tag_user->user = $user;
@@ -514,6 +524,21 @@ class User extends \Gini\Controller\API
         }
 
         return true;
+    }
+
+    public function actionConnect($id, $labId) {
+        $user = a('user', $id);
+        if (!$user->id) {
+            throw \Gini\IoC::construct('\Gini\API\Exception', '用户不存在', 1004);
+        }
+
+        $tag = a('tag')->whose('name')->is($labId);
+        if (!$tag->id) {
+            $tag->name = $labId;
+            $tag->save();
+        }
+
+        return $user->connect($tag);
     }
 
 }

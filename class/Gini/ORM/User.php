@@ -57,6 +57,21 @@ class User extends Object
         }
     }
 
+    public function connect ($lab) 
+    {
+        $tag_user = a('tag/user')->whose('user')->is($this)
+            ->andWhose('tag')->is($lab);
+        if ($tag_user->id) {
+            return true;
+        }
+
+        $tag_user = a('tag/user');
+        $tag_user->user = $this;
+        $tag_user->tag = $lab;
+        
+        return $tag_user->save();
+    }
+
     public function createActivationKey()
     {
         $key = substr(md5($this->email.time()), 5, 20);
