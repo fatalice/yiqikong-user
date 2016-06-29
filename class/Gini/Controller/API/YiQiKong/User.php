@@ -10,6 +10,7 @@ class User extends \Gini\Controller\API
      * @throws exception   1003: 账户已经被激活
      * @throws exception   1004: 用户不存在
      * @throws exception   1005: gapper用户不存在
+     * @throws exception   1006: Lab不存在
      **/
 
     private function _getUser($id)
@@ -539,6 +540,23 @@ class User extends \Gini\Controller\API
         }
 
         return $user->connect($tag);
+    }
+
+    public function actionBelong($id, $labId) {
+        $user = a('user', $id);
+        if (!$user->id) {
+            throw \Gini\IoC::construct('\Gini\API\Exception', '用户不存在', 1004);
+        }
+
+        $tag = a('tag')->whose('name')->is($labId);
+        if (!$tag->id) {
+            throw \Gini\IoC::construct('\Gini\API\Exception', '站点不存在', 1005);
+        }
+
+        $tag_user = a('tag/user')->whose('user')->is($user)
+            ->andWhose('tag')->is($tag);
+
+        return $tag_user->id ? true : false;
     }
 
 }
