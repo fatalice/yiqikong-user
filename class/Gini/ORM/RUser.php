@@ -56,38 +56,38 @@ class RUser extends Gapper\User
         }
     }
 
-    public static function getIdentity($id)
+    public static function getIdentity($id, $source='wechat')
     {
         try {
-            return self::getRPC()->gapper->user->getIdentity($id, 'wechat');
+            return self::getRPC()->gapper->user->getIdentity($id, $source);
         } catch (\Gini\RPC\Exception $e) {
 
         }
     }
 
-    public static function linkIdentity($id, $openId)
+    public static function linkIdentity($id, $openId, $source='wechat')
     {
         try {
-            return self::getRPC()->gapper->user->linkIdentity($id, 'wechat', $openId);
+            return self::getRPC()->gapper->user->linkIdentity($id, $source, $openId);
         } catch (\Gini\RPC\Exception $e) {
 
         }
 
     }
 
-    public static function unlinkIdentity($id, $openId)
+    public static function unlinkIdentity($id, $openId, $source='wechat')
     {
         try {
-            return self::getRPC()->gapper->user->unlinkIdentity($id, 'wechat', $openId);
+            return self::getRPC()->gapper->user->unlinkIdentity($id, $source, $openId);
         } catch (\Gini\RPC\Exception $e) {
 
         }
     }
 
-    public static function getUserByIdentity($openId)
+    public static function getUserByIdentity($openId, $source='wechat')
     {
         try {
-            return self::getRPC()->gapper->user->getUserByIdentity('wechat', $openId);
+            return self::getRPC()->gapper->user->getUserByIdentity($source, $openId);
         } catch (\Gini\RPC\Exception $e) {
 
         }

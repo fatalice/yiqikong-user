@@ -1,4 +1,7 @@
 ---
 billing:
   url: http://billing.17kong.com/api
+directory:
+  url: http://directory.17kong.com/api
 ...
+---

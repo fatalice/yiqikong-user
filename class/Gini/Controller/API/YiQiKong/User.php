@@ -559,5 +559,23 @@ class User extends \Gini\Controller\API
         return $tag_user->id ? true : false;
     }
 
+    public function actionLinkIdentity($uuid, $source, $identity)
+    {
+        $gUser = a('ruser', $uuid);
+        if (!$gUser->id) {
+            throw \Gini\IoC::construct('\Gini\API\Exception', '用户不存在', 1004);
+        }
+        return \Gini\ORM\RUser::linkIdentity($uuid, $identity, $source);
+    }
+
+    public function actionUnlinkIdentity($uuid, $source, $identity)
+    {
+        $gUser = a('ruser', $uuid);
+        if (!$gUser->id) {
+            throw \Gini\IoC::construct('\Gini\API\Exception', '用户不存在', 1004);
+        }
+        return \Gini\ORM\RUser::unlinkIdentity($uuid, $identity, $source);
+    }
+
 }
 
