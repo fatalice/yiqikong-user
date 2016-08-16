@@ -1,6 +1,6 @@
 ---
 default:
-  dsn: mysql:dbname=yiqikong_user;host=binhui_mysql.docker.local; 
+  dsn: mysql:dbname=yiqikong_user;host=db1.17kong.com;
   username: genee
   password: 83719730
 gapper:

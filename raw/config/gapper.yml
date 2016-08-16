@@ -1,8 +1,8 @@
 ---
 rpc:
-  url: http://192.168.0.5:9901/api
-  client_id: e4487c16e06299b028f9175b08f6d85acf54e025
-  client_secret: bd7f1e6ed72d10dd03264de8d10067aca351bb37
+  url: http://gapper.in/api
+  client_id: 81b93fb59609e3015fba42bd26b91ff081ef8d53
+  client_secret: dadbf17669eff2169301b2e4a219892d822c4c2c
 
-server_home: http://192.168.0.5:9901/api
+server_home: http://gapper.in/api
 ...
