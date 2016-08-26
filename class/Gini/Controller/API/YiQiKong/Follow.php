@@ -9,7 +9,7 @@ class Follow extends \Gini\Controller\API
      * @throws exception   1002: 用户不存在
      * @throws exception   1003: 关注对象异常
 
-     **/
+    **/
     public static $apiError = [
         1001 => '异常参数传入',
         1002 => '用户不存在',
@@ -24,7 +24,7 @@ class Follow extends \Gini\Controller\API
     {
         if (is_numeric($id) && $id > 0) {
             $user = a('user')->whose('gapper_id')->is($id);
-        } 
+        }
         elseif (is_string($id) && $id) {
             if (preg_match('/^[\w-]+(\.[\w-]+)*@[\w-]+(\.[\w-]+)+$/', $id)) {
                 $user = a('user')->whose('email')->is($id);
@@ -40,7 +40,7 @@ class Follow extends \Gini\Controller\API
     }
 
     //
-    public static function actionSearchFollows(array $criteria)
+    public function actionSearchFollows($criteria=[])
     {
 
         $follows = those('follow');
@@ -68,7 +68,7 @@ class Follow extends \Gini\Controller\API
 
     }
 
-    public static function actionGetFollows(string $token, int $start, int $end)
+    public function actionGetFollows($token, $start=0, $end=10)
     {
         $criteria = $_SESSION[$token];
         if ($criteria) {
@@ -108,8 +108,9 @@ class Follow extends \Gini\Controller\API
         return [];
     }
 
-    public static function actionBind(int $userId, string $sourceName, string $sourceId)
+    public function actionGetFollow($userId, $sourceName, $sourceId)
     {
+
         if (!in_array($sourceName, self::$sourceList)) {
             throw \Gini\IoC::construct('\Gini\API\Exception', self::$apiError[1001], 1001);
         }
@@ -119,6 +120,34 @@ class Follow extends \Gini\Controller\API
         }
 
         $source = a($sourceName, $sourceId);
+        if (!$source->id) {
+            $source = a($sourceName, ['uuid' => $sourceId]);
+        }
+        if (!$source->id) {
+            throw \Gini\IoC::construct('\Gini\API\Exception', self::$apiError[1003], 1003);
+        }
+
+        $follow = a('follow')->whose('user')->is($user)
+                    ->andWhose('source_name')->is($sourceName)
+                    ->andWhose('source_uuid')->is($sourceId);
+
+        return (int)$follow->id;
+
+    }
+
+    public function actionBind($userId, $sourceName, $sourceId)
+    {
+        if (!in_array($sourceName, self::$sourceList)) {
+            throw \Gini\IoC::construct('\Gini\API\Exception', self::$apiError[1001], 1001);
+        }
+        $user = $this->_getUser($userId);
+        if (!$user->id) {
+            throw \Gini\IoC::construct('\Gini\API\Exception', self::$apiError[1002], 1002);
+        }
+        $source = a($sourceName, $sourceId);
+        if (!$source->id) {
+            $source = a($sourceName, ['uuid' => $sourceId]);
+        }
         if (!$source->id) {
             throw \Gini\IoC::construct('\Gini\API\Exception', self::$apiError[1003], 1003);
         }
@@ -131,7 +160,7 @@ class Follow extends \Gini\Controller\API
         return $follow->save() ? $follow->id : false;
     }
 
-    public static function actionUnbind(int $userId, string $sourceName, string $sourceId)
+    public function actionUnbind($userId, $sourceName, $sourceId)
     {
         if (!in_array($sourceName, self::$sourceList)) {
             throw \Gini\IoC::construct('\Gini\API\Exception', self::$apiError[1001], 1001);
@@ -153,4 +182,3 @@ class Follow extends \Gini\Controller\API
     }
 
 }
-
