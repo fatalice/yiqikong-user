@@ -65,7 +65,7 @@ class RUser extends Gapper\User
         }
     }
 
-    public static function linkIdentity($id, $openId, $source='wechat')
+    /*public static function linkIdentity($id, $openId)
     {
         try {
             return self::getRPC()->gapper->user->linkIdentity($id, $source, $openId);
@@ -73,7 +73,7 @@ class RUser extends Gapper\User
 
         }
 
-    }
+    }*/
 
     public static function unlinkIdentity($id, $openId, $source='wechat')
     {

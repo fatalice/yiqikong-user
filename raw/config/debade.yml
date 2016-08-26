@@ -3,11 +3,11 @@ queues:
   Lims-CF:
     driver: Courier
     options:
-      dsn: tcp://192.168.0.5:7333
+      dsn: tcp://debade-courier.docker.local:3333
       queue: Lims-CF
   YiQiKong:
     driver: Courier
     options:
-      dsn: tcp://192.168.0.5:7333
+      dsn: tcp://debade-courier.docker.local:3333
       queue: YiQiKong
 ...
