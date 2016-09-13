@@ -135,7 +135,7 @@ class Follow extends \Gini\Controller\API
 
     }
 
-    public function actionBind($userId, $sourceName, $sourceId)
+    public static function actionBind($userId, $sourceName, $sourceId)
     {
         if (!in_array($sourceName, self::$sourceList)) {
             throw \Gini\IoC::construct('\Gini\API\Exception', self::$apiError[1001], 1001);
@@ -160,7 +160,7 @@ class Follow extends \Gini\Controller\API
         return $follow->save() ? $follow->id : false;
     }
 
-    public function actionUnbind($userId, $sourceName, $sourceId)
+    public static function actionUnbind($userId, $sourceName, $sourceId)
     {
         if (!in_array($sourceName, self::$sourceList)) {
             throw \Gini\IoC::construct('\Gini\API\Exception', self::$apiError[1001], 1001);
