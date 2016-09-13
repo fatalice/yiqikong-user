@@ -29,7 +29,8 @@ class User extends \Gini\Controller\API
         switch ($params['method']) {
             case 'YiQiKong/Follow/Bind' :
             case 'YiQiKong/Follow/Unbind' :
-                $class = '\\'.__NAMESPACE__.'\\'.'Follow';
+                $className = '\\'.__NAMESPACE__.'\\'.'Follow';
+                $class = new $className;
                 $method = end($methods);
                 break;
             default :
