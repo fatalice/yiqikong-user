@@ -13,6 +13,36 @@ class User extends \Gini\Controller\API
      * @throws exception   1006: Lab不存在
      **/
 
+    public static function actionMapping($params) {
+        $hash = $_SERVER['HTTP_X_DEBADE_TOKEN'];
+        $secret = \Gini\Config::get('debade.secret');
+        $str = file_get_contents('php://input');
+
+        if ($hash != \Gini\Debade::hash($str, $secret)) {
+            throw \Gini\IoC::construct('\Gini\API\Exception', '非法请求', 1000);
+            return;
+        }
+
+        $class = __CLASS__;
+        $methods = (array)explode('/', $params['method']);
+
+        switch ($params['method']) {
+            case 'YiQiKong/Follow/Bind' :
+            case 'YiQiKong/Follow/Unbind' :
+                $class = '\\'.__NAMESPACE__.'\\'.'Follow';
+                $method = end($methods);
+                break;
+            default :
+                throw \Gini\IoC::construct('\Gini\API\Exception', '异常参数传入', 1001);
+                return;
+        }
+
+        $method = strtr('action%action', ['%action' => $method]);
+        if (method_exists($class, $method)) {
+            call_user_func_array([$class, $method], $params['params']);
+        }
+    }
+
     private function _getUser($id)
     {
         if (!$id) {
