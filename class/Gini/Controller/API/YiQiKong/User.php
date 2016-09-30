@@ -69,6 +69,20 @@ class User extends \Gini\Controller\API
         ];
     }
 
+    public function actionSearch($criteria = []) 
+    {
+        $users = \Gini\Model\User::search($criteria);
+
+        $token = 'search' . uniqid();
+
+        $_SESSION[$token] = json_encode($criteria);
+
+        return [
+            'totalCount' => $users->totalCount(), 
+            'token' => $token
+        ];
+    }
+
     // 获取 yiqikong-user 用户信息
     public function actionGetInfo($id)
     {
@@ -443,7 +457,8 @@ class User extends \Gini\Controller\API
         return false;
     }
 
-    public function actionGetActivationKey($email) {
+    public function actionGetActivationKey($email) 
+    {
         $user = a('user')->whose('email')->is($email);
         if (!$user->id) {
             throw \Gini\IoC::construct('\Gini\API\Exception', '用户不存在', 1004);
@@ -527,7 +542,8 @@ class User extends \Gini\Controller\API
         return true;
     }
 
-    public function actionConnect($id, $labId) {
+    public function actionConnect($id, $labId) 
+    {
         $user = a('user', $id);
         if (!$user->id) {
             throw \Gini\IoC::construct('\Gini\API\Exception', '用户不存在', 1004);
@@ -542,7 +558,8 @@ class User extends \Gini\Controller\API
         return $user->connect($tag);
     }
 
-    public function actionBelong($id, $labId) {
+    public function actionBelong($id, $labId) 
+    {
         $user = a('user', $id);
         if (!$user->id) {
             throw \Gini\IoC::construct('\Gini\API\Exception', '用户不存在', 1004);
