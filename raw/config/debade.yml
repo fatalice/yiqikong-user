@@ -1,4 +1,5 @@
 ---
+secret: 400MYGENEE
 queues:
   Lims-CF:
     driver: Courier
