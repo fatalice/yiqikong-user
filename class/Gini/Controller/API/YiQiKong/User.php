@@ -613,7 +613,7 @@ class User extends \Gini\Controller\API
         if (!$gUser->id) {
             throw \Gini\IoC::construct('\Gini\API\Exception', '用户不存在', 1004);
         }
-        return \Gini\ORM\RUser::linkIdentity($uuid, $identity, $source);
+        return \Gini\ORM\RUser::setIdentity($uuid, $identity, $source);
     }
 
     public function actionUnlinkIdentity($uuid, $source, $identity)

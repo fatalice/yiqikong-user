@@ -65,15 +65,14 @@ class RUser extends Gapper\User
         }
     }
 
-    /*public static function linkIdentity($id, $openId)
+    public static function setIdentity($id, $unionId, $source = 'wechat')
     {
         try {
-            return self::getRPC()->gapper->user->linkIdentity($id, $source, $openId);
+            return self::getRPC()->gapper->user->linkIdentity($id, $source, $unionId);
         } catch (\Gini\RPC\Exception $e) {
 
         }
-
-    }*/
+    }
 
     public static function unlinkIdentity($id, $openId, $source='wechat')
     {
