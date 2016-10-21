@@ -2,7 +2,7 @@
     "id": "yiqikong-user",
     "name": "仪器控用户管理",
     "description": "仪器控用户管理",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "dependencies": {
         "gini": ">=1.0.0",
         "gapper": "*",
